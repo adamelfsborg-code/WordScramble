@@ -20,7 +20,7 @@ struct ContentView: View {
                     TextField("Enter your word: ", text: $newWord)
                         .textInputAutocapitalization(.never)
                 }
-                
+
                 Section("Score") {
                     Text("\(score)")
                         .font(.largeTitle)
@@ -55,7 +55,7 @@ struct ContentView: View {
         
         guard answer.count > 0 else { return }
         
-        guard answer.count > 3 else {
+        guard answer.count >= 3 else {
             wordError(title: "Word to short", message: "A minimum of 3 letters required.")
             return
         }
