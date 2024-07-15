@@ -8,6 +8,10 @@ struct ContentView: View {
     @State private var errorTitle = ""
     @State private var errorMessage = ""
     @State private var showingError = false
+    
+    @State private var score = 0
+    
+    
 
     var body: some View {
         NavigationStack {
@@ -16,6 +20,14 @@ struct ContentView: View {
                     TextField("Enter your word: ", text: $newWord)
                         .textInputAutocapitalization(.never)
                 }
+                
+                Section("Score") {
+                    Text("\(score)")
+                        .font(.largeTitle)
+                        .bold()
+                        .foregroundStyle(.secondary)
+                }
+                
                 
                 Section {
                     ForEach(usedWords, id: \.self) { word in
@@ -27,6 +39,9 @@ struct ContentView: View {
                 }
             }
             .navigationTitle(rootWord)
+            .toolbar {
+                Button("Restart", action: startGame)
+            }
             .onSubmit(addNewWord)
             .onAppear(perform: startGame)
             .alert(errorTitle, isPresented: $showingError) { } message: {
@@ -39,6 +54,16 @@ struct ContentView: View {
         let answer = newWord.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
         
         guard answer.count > 0 else { return }
+        
+        guard answer.count > 3 else {
+            wordError(title: "Word to short", message: "A minimum of 3 letters required.")
+            return
+        }
+        
+        guard answer != rootWord else {
+            wordError(title: "Word not possilbe", message: "Dont be a copycat")
+            return
+        }
         
         guard isOriginal(word: answer) else {
             wordError(title: "Word used already", message: "Be more original!")
@@ -59,10 +84,14 @@ struct ContentView: View {
             usedWords.insert(answer, at: 0)
         }
         
+        updateScore()
+        
         newWord = ""
     }
     
     func startGame() {
+        score = 0
+        usedWords = []
         if let startWordsURL = Bundle.main.url(forResource: "start", withExtension: "txt") {
             if let startWords = try? String(contentsOf: startWordsURL) {
                 let allWords = startWords.components(separatedBy: "\n")
@@ -75,6 +104,15 @@ struct ContentView: View {
         }
         
         fatalError("Could not load start.txt from bundle")
+    }
+    
+    func updateScore() {
+        var tempScore = 0
+        let points = usedWords.map { $0.count * 2 }
+        for point in points {
+            tempScore += point
+        }
+        score = tempScore
     }
     
     func isOriginal(word: String) -> Bool {
@@ -107,6 +145,7 @@ struct ContentView: View {
         errorMessage = message
         showingError = true
     }
+    
 }
 
 #Preview {
